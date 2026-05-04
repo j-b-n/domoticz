@@ -1309,6 +1309,44 @@ body.dd-navbar-hidden .dd-toolbar {
     margin-top: 4px;
 }
 
+.dd-clock-main {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.dd-clock-sun {
+    width: 100%;
+}
+
+.dd-stat-card.dd-clock--with-sun {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: center;
+    justify-items: center;
+    justify-content: center;
+    text-align: center;
+    column-gap: 12px;
+}
+
+.dd-stat-card.dd-clock--with-sun .dd-clock-main {
+    width: 100%;
+    justify-content: center;
+    align-items: center;
+}
+
+.dd-stat-card.dd-clock--with-sun .dd-clock-sun {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.dd-stat-card.dd-clock--with-sun .dd-sun-cols {
+    justify-content: center;
+    gap: 12px;
+}
+
 /* ── Text Note widget ─────────────────────────────────────── */
 .dd-widget--text-note > .dd-widget-body {
     padding: 0;

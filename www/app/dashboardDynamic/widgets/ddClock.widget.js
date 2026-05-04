@@ -59,7 +59,8 @@ define([
             { key: 'format24h',       type: 'boolean', label: '24-hour format',                      default: true },
             { key: 'showDate',        type: 'boolean', label: 'Show date',                           default: true },
             { key: 'showBackground',  type: 'boolean', label: 'Show panel background',               default: true },
-            { key: 'timezone',        type: 'picker',  label: 'Timezone', default: _localTz, options: _tzOptions }
+            { key: 'showSunInfo',     type: 'boolean', label: 'Show sunrise and sunset times',       default: false },
+            { key: 'timezone',        type: 'picker',  label: 'Timezone', default: _localTz, options: _tzOptions },
         ]
     });
 
@@ -73,11 +74,14 @@ define([
             },
             controllerAs:     'ctrl',
             bindToController: true,
-            controller: ['$scope', '$interval', 'dzTimeAndSun', 'ddVisibility', function($scope, $interval, dzTimeAndSun, ddVisibility) {
+            controller: ['$scope', '$interval', 'dzTimeAndSun', 'ddVisibility', '$http', '$q', function($scope, $interval, dzTimeAndSun, ddVisibility, $http, $q) {
                 var ctrl = this;
                 ctrl.timeStr = '';
                 ctrl.dateStr = '';
                 ctrl.title   = '';
+                ctrl.sunrise   = '—';
+                ctrl.sunset    = '—';
+                ctrl.showSunInfo = false;
 
                 var _rawSec = 0;
                 var _initDone = false;
@@ -161,13 +165,39 @@ define([
                     timer = $interval(tick, 1000);
                 }
 
+                var cancelToken = null;
+
+
+                function load() {
+                    if (cancelToken) { cancelToken.resolve(); }
+                    cancelToken = $q.defer();
+
+                    $http.get('json.htm?type=command&param=getSunRiseSet', { timeout: cancelToken.promise })
+                        .then(function(resp) {
+                            var d = resp.data;
+                            ctrl.sunrise   = d.Sunrise   || '—';
+                            ctrl.sunset    = d.Sunset    || '—';
+                        })
+                        .catch(function(err) {
+                            if (err.status === -1) { return; }
+                            ctrl.error = 'Failed to load data';
+                        });
+                }
+
+
                 $scope.$on('dd:page:hidden',  function() { stopTimer(); });
                 $scope.$on('dd:page:visible', function() { tick(); startTimer(); });
 
-                $scope.$on('$destroy', function() { stopTimer(); deregTimeUpdate(); });
+                 
+                $scope.$on('$destroy', function() { 
+                    cancelToken.resolve(); 
+                    cancelToken = null;
+                    stopTimer(); deregTimeUpdate(); 
+                });
 
                 ctrl.$onInit = function() {
                     tick();
+                    load();
                     if (!ddVisibility.isHidden()) { startTimer(); }
                 };
             }]
